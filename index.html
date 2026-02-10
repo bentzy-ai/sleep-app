@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול אורחים וחדרים</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .column {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    h2 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    /* רשימת אורחים */
+    .guest-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .guest-input input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .guest-input button {
+      padding: 8px 15px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .guest-input button:hover {
+      background: #45a049;
+    }
+    
+    .guest-list {
+      list-style: none;
+    }
+    
+    .guest-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #f9f9f9;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .guest-item.used {
+      text-decoration: line-through;
+      opacity: 0.6;
+      background: #e8e8e8;
+    }
+    
+    .guest-item .guest-number {
+      font-weight: bold;
+      color: #666;
+      margin-left: 8px;
+    }
+    
+    .guest-item button {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    /* בתים וחדרים */
+    .add-house-btn {
+      width: 100%;
+      padding: 10px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+    
+    .add-house-btn:hover {
+      background: #0b7dda;
+    }
+    
+    .house {
+      border: 2px solid #2196F3;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background: #f0f8ff;
+    }
+    
+    .house-header {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    
+    .house-header input {
+      flex: 1;
+      padding: 8px;
+      border: 2px solid #2196F3;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .delete-house-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .add-room-btn {
+      width: 100%;
+      padding: 8px;
+      background: #FF9800;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    
+    .add-room-btn:hover {
+      background: #e68900;
+    }
+    
+    .room {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    
+    .room-header {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    
+    .room-header input {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    
+    .room-header button {
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .room textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      min-height: 60px;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- עמודת אורחים -->
+    <div class="column">
+      <h2>רשימת אורחים</h2>
+      <div class="guest-input">
+        <input type="text" id="guestNameInput" placeholder="הזן שם אורח">
+        <button onclick="addGuest()">הוסף</button>
+      </div>
+      <ol class="guest-list" id="guestList"></ol>
+    </div>
+    
+    <!-- עמודת בתים וחדרים -->
+    <div class="column">
+      <h2>בתים וחדרים</h2>
+      <button class="add-house-btn" onclick="addHouse()">➕ הוסף בית</button>
+      <div id="housesList"></div>
+    </div>
+  </div>
+
+  <script>
+    let guests = [];
+    let houses = [];
+    let houseCounter = 1;
+
+    // טעינת נתונים מ-localStorage
+    function loadData() {
+      const savedGuests = localStorage.getItem('guests');
+      const savedHouses = localStorage.getItem('houses');
+      const savedHouseCounter = localStorage.getItem('houseCounter');
+      
+      if (savedGuests) guests = JSON.parse(savedGuests);
+      if (savedHouses) houses = JSON.parse(savedHouses);
+      if (savedHouseCounter) houseCounter = parseInt(savedHouseCounter);
+      
+      renderGuests();
+      renderHouses();
+    }
+
+    // שמירת נתונים ל-localStorage
+    function saveData() {
+      localStorage.setItem('guests', JSON.stringify(guests));
+      localStorage.setItem('houses', JSON.stringify(houses));
+      localStorage.setItem('houseCounter', houseCounter);
+    }
+
+    // הוספת אורח
+    function addGuest() {
+      const input = document.getElementById('guestNameInput');
+      const name = input.value.trim();
+      
+      if (name) {
+        guests.push({ name, used: false });
+        input.value = '';
+        saveData();
+        renderGuests();
+      }
+    }
+
+    // מחיקת אורח
+    function deleteGuest(index) {
+      guests.splice(index, 1);
+      saveData();
+      renderGuests();
+      renderHouses();
+    }
+
+    // הצגת רשימת אורחים
+    function renderGuests() {
+      const list = document.getElementById('guestList');
+      list.innerHTML = '';
+      
+      guests.forEach((guest, index) => {
+        const li = document.createElement('li');
+        li.className = `guest-item ${guest.used ? 'used' : ''}`;
+        li.innerHTML = `
+          <span>
+            <span class="guest-number">${index + 1}.</span>
+            ${guest.name}
+          </span>
+          <button onclick="deleteGuest(${index})">מחק</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // הוספת בית
+    function addHouse() {
+      houses.push({
+        name: `בית ${houseCounter}`,
+        rooms: []
+      });
+      houseCounter++;
+      saveData();
+      renderHouses();
+    }
+
+    // מחיקת בית
+    function deleteHouse(houseIndex) {
+      houses.splice(houseIndex, 1);
+      saveData();
+      renderHouses();
+      updateGuestUsage();
+    }
+
+    // עדכון שם בית
+    function updateHouseName(houseIndex, newName) {
+      houses[houseIndex].name = newName;
+      saveData();
+    }
+
+    // הוספת חדר
+    function addRoom(houseIndex) {
+      const roomNumber = houses[houseIndex].rooms.length + 1;
+      houses[houseIndex].rooms.push({
+        name: `חדר ${roomNumber}`,
+        guests: ''
+      });
+      saveData();
+      renderHouses();
+    }
+
+    // מחיקת חדר
+    function deleteRoom(houseIndex, roomIndex) {
+      houses[houseIndex].rooms.splice(roomIndex, 1);
+      saveData();
+      renderHouses();
+      updateGuestUsage();
+    }
+
+    // עדכון שם חדר
+    function updateRoomName(houseIndex, roomIndex, newName) {
+      houses[houseIndex].rooms[roomIndex].name = newName;
+      saveData();
+    }
+
+    // עדכון אורחים בחדר
+    function updateRoomGuests(houseIndex, roomIndex, guestsText) {
+      houses[houseIndex].rooms[roomIndex].guests = guestsText;
+      saveData();
+      updateGuestUsage();
+    }
+
+    // עדכון סטטוס שימוש באורחים
+    function updateGuestUsage() {
+      // איפוס כל האורחים
+      guests.forEach(g => g.used = false);
+      
+      // סימון אורחים שנמצאים בחדרים
+      houses.forEach(house => {
+        house.rooms.forEach(room => {
+          const roomGuests = room.guests.toLowerCase().split('\n').map(g => g.trim()).filter(g => g);
+          
+          roomGuests.forEach(roomGuest => {
+            guests.forEach(guest => {
+              if (guest.name.toLowerCase() === roomGuest) {
+                guest.used = true;
+              }
+            });
+          });
+        });
+      });
+      
+      saveData();
+      renderGuests();
+    }
+
+    // הצגת בתים וחדרים
+    function renderHouses() {
+      const container = document.getElementById('housesList');
+      container.innerHTML = '';
+      
+      houses.forEach((house, houseIndex) => {
+        const houseDiv = document.createElement('div');
+        houseDiv.className = 'house';
+        
+        let roomsHTML = '';
+        house.rooms.forEach((room, roomIndex) => {
+          roomsHTML += `
+            <div class="room">
+              <div class="room-header">
+                <input 
+                  type="text" 
+                  value="${room.name}" 
+                  onchange="updateRoomName(${houseIndex}, ${roomIndex}, this.value)"
+                >
+                <button onclick="deleteRoom(${houseIndex}, ${roomIndex})">❌</button>
+              </div>
+              <textarea 
+                placeholder="הזן שמות אורחים (כל שם בשורה נפרדת)"
+                oninput="updateRoomGuests(${houseIndex}, ${roomIndex}, this.value)"
+              >${room.guests}</textarea>
+            </div>
+          `;
+        });
+        
+        houseDiv.innerHTML = `
+          <div class="house-header">
+            <input 
+              type="text" 
+              value="${house.name}" 
+              onchange="updateHouseName(${houseIndex}, this.value)"
+            >
+            <button class="delete-house-btn" onclick="deleteHouse(${houseIndex})">🗑️ מחק בית</button>
+          </div>
+          <button class="add-room-btn" onclick="addRoom(${houseIndex})">➕ הוסף חדר</button>
+          ${roomsHTML}
+        `;
+        
+        container.appendChild(houseDiv);
+      });
+    }
+
+    // אירוע Enter להוספת אורח
+    document.getElementById('guestNameInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addGuest();
+      }
+    });
+
+    // טעינה ראשונית
+    loadData();
+  </script>
+</body>
+</html>
