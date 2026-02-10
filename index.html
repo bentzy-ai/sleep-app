@@ -147,17 +147,28 @@ function addHouse() {
 }
 
 function addRoom(btn) {
+ let roomCounter = 1;
+
+function addRoom(btn) {
   const room = document.createElement("div");
   room.className = "room";
+
   room.innerHTML = `
-    <b>חדר</b>
+    <input 
+      value="חדר ${roomCounter++}" 
+      style="font-weight:bold; width:70%"
+    >
     <button onclick="this.parentElement.remove(); updateGuestUsage()">❌</button>
     <br>
-    <textarea oninput="updateGuestUsage()" placeholder="שמות אורחים"></textarea>
+    <textarea 
+      oninput="updateGuestUsage()" 
+      placeholder="שמות אורחים">
+    </textarea>
   `;
+
   btn.nextElementSibling.appendChild(room);
 }
-</script>
 
 </body>
 </html>
+
