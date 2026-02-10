@@ -146,15 +146,14 @@ function addHouse() {
   document.getElementById("houseList").appendChild(house);
 }
 
-let roomCounter = 1;
+let roomCounter = parseInt(localStorage.getItem('roomCounter')) || 1;
 
 function addRoom(btn) {
   const room = document.createElement("div");
   room.className = "room";
-
   room.innerHTML = `
     <input 
-      value="חדר ${roomCounter++}" 
+      value="חדר ${roomCounter}" 
       style="font-weight:bold; width:70%"
     >
     <button onclick="this.parentElement.remove(); updateGuestUsage()">❌</button>
@@ -164,8 +163,13 @@ function addRoom(btn) {
       placeholder="שמות אורחים">
     </textarea>
   `;
-
+  
+  roomCounter++;
+  localStorage.setItem('roomCounter', roomCounter);
   btn.nextElementSibling.appendChild(room);
+  updateGuestUsage();
 }
+}
+
 
 
