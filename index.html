@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8">
+<title>חלוקת לינה</title>
+<style>
+body {
+  font-family: Arial;
+  direction: rtl;
+  margin: 0;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+#guests, #houses {
+  border: 1px solid #ccc;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+#guests { width: 30%; }
+#houses { width: 70%; }
+
+.guest.strike {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.house, .room {
+  border: 1px solid #000;
+  padding: 8px;
+  margin: 8px 0;
+}
+
+.room textarea {
+  width: 100%;
+  height: 40px;
+}
+
+button {
+  margin: 3px;
+}
+</style>
+</head>
+<body>
+
+<!-- אורחים -->
+<div id="guests">
+  <h3>אורחים</h3>
+  <input id="guestInput" placeholder="שם אורח">
+  <button onclick="addGuest()">הוסף</button>
+  <ol id="guestList"></ol>
+</div>
+
+<!-- בתים -->
+<div id="houses">
+  <h3>בתים מארחים</h3>
+  <button onclick="addHouse()">➕ הוסף בית</button>
+  <div id="houseList"></div>
+</div>
+
+<script>
+let guests = [];
+
+function renderGuests() {
+  const list = document.getElementById("guestList");
+  list.innerHTML = "";
+  guests.forEach(g => {
+    const li = document.createElement("li");
+    li.textContent = g.name;
+    li.className = g.used ? "guest strike" : "guest";
+    list.appendChild(li);
+  });
+}
+
+function addGuest() {
+  const name = guestInput.value.trim();
+  if (!name) return;
+  guests.push({ name, used: false });
+  guestInput.value = "";
+  renderGuests();
+}
+
+function updateGuestUsage() {
+  guests.forEach(g => g.used = false);
+  document.querySelectorAll("textarea").forEach(t => {
+    guests.forEach(g => {
+      if (t.value.includes(g.name)) g.used = true;
+    });
+  });
+  renderGuests();
+}
+
+function addHouse() {
+  const houseName = prompt("שם הבית:");
+  if (!houseName) return;
+
+  const house = document.createElement("div");
+  house.className = "house";
+
+  house.innerHTML = `
+    <b>${houseName}</b>
+    <button onclick="this.parentElement.remove(); updateGuestUsage()">❌ מחק בית</button>
+    <br>
+    <button onclick="addRoom(this)">➕ הוסף חדר</button>
+    <div class="rooms"></div>
+  `;
+
+  document.getElementById("houseList").appendChild(house);
+}
+
+function addRoom(btn) {
+  const room = document.createElement("div");
+  room.className = "room";
+  room.innerHTML = `
+    <b>חדר</b>
+    <button onclick="this.parentElement.remove(); updateGuestUsage()">❌</button>
+    <br>
+    <textarea oninput="updateGuestUsage()" placeholder="שמות אורחים"></textarea>
+  `;
+  btn.nextElementSibling.appendChild(room);
+}
+</script>
+
+</body>
+</html>
