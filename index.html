@@ -3,61 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <title>חלוקת לינה</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
   font-family: Arial;
   direction: rtl;
   margin: 0;
   padding: 10px;
+}
+
+.container {
   display: flex;
   gap: 10px;
 }
 
-#guests, #houses {
+@media (max-width: 700px) {
+  .container {
+    flex-direction: column;
+  }
+}
+
+.box {
   border: 1px solid #ccc;
   padding: 10px;
-  overflow-y: auto;
+  border-radius: 6px;
 }
 
 #guests { width: 30%; }
 #houses { width: 70%; }
 
-.guest.strike {
+@media (max-width: 700px) {
+  #guests, #houses {
+    width: 100%;
+  }
+}
+
+.guest {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.guest.used span {
   text-decoration: line-through;
   color: gray;
+}
+
+button {
+  margin: 3px;
+  padding: 5px 8px;
+  cursor: pointer;
 }
 
 .house, .room {
   border: 1px solid #000;
   padding: 8px;
   margin: 8px 0;
+  border-radius: 6px;
 }
 
 .room textarea {
   width: 100%;
   height: 40px;
 }
-
-button {
-  margin: 3px;
-}
 </style>
 </head>
 <body>
 
-<!-- אורחים -->
-<div id="guests">
-  <h3>אורחים</h3>
-  <input id="guestInput" placeholder="שם אורח">
-  <button onclick="addGuest()">הוסף</button>
-  <ol id="guestList"></ol>
-</div>
+<div class="container">
 
-<!-- בתים -->
-<div id="houses">
-  <h3>בתים מארחים</h3>
-  <button onclick="addHouse()">➕ הוסף בית</button>
-  <div id="houseList"></div>
+  <!-- אורחים -->
+  <div id="guests" class="box">
+    <h3>אורחים</h3>
+    <input id="guestInput" placeholder="שם אורח">
+    <button onclick="addGuest()">הוסף</button>
+    <ol id="guestList"></ol>
+  </div>
+
+  <!-- בתים -->
+  <div id="houses" class="box">
+    <h3>בתים מארחים</h3>
+    <button onclick="addHouse()">➕ הוסף בית</button>
+    <div id="houseList"></div>
+  </div>
+
 </div>
 
 <script>
@@ -66,10 +96,13 @@ let guests = [];
 function renderGuests() {
   const list = document.getElementById("guestList");
   list.innerHTML = "";
-  guests.forEach(g => {
+  guests.forEach((g, i) => {
     const li = document.createElement("li");
-    li.textContent = g.name;
-    li.className = g.used ? "guest strike" : "guest";
+    li.className = "guest" + (g.used ? " used" : "");
+    li.innerHTML = `
+      <span>${g.name}</span>
+      <button onclick="removeGuest(${i})">❌</button>
+    `;
     list.appendChild(li);
   });
 }
@@ -80,6 +113,11 @@ function addGuest() {
   guests.push({ name, used: false });
   guestInput.value = "";
   renderGuests();
+}
+
+function removeGuest(index) {
+  guests.splice(index, 1);
+  updateGuestUsage();
 }
 
 function updateGuestUsage() {
@@ -98,7 +136,6 @@ function addHouse() {
 
   const house = document.createElement("div");
   house.className = "house";
-
   house.innerHTML = `
     <b>${houseName}</b>
     <button onclick="this.parentElement.remove(); updateGuestUsage()">❌ מחק בית</button>
@@ -106,7 +143,6 @@ function addHouse() {
     <button onclick="addRoom(this)">➕ הוסף חדר</button>
     <div class="rooms"></div>
   `;
-
   document.getElementById("houseList").appendChild(house);
 }
 
@@ -125,3 +161,4 @@ function addRoom(btn) {
 
 </body>
 </html>
+
